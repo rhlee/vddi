@@ -40,7 +40,8 @@ main(int argc, char *argv[])
   FILE *vdi;
   int vdiFd;
   char *input, *output;
-  long blockOffset, dataOffset;
+  long blockOffset, dataOffset, blockSize;
+  long long diskSize, blockCount;
   
   while((opt = getopt(argc, argv, "i:s")) != -1)
   {
@@ -92,8 +93,10 @@ main(int argc, char *argv[])
   printf("VDI type: %lu\n", quadToULong(headerBuffer + 0x4c));
   printf("Block offset: 0x%x\n", blockOffset = quadToULong(headerBuffer + 0x154));
   printf("Data offset: 0x%x\n", dataOffset = quadToULong(headerBuffer + 0x158));
-  printf("Disk size: %llu\n", quadToULong(headerBuffer + 0x170) +
+  printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
+  printf("Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
+  printf("Block Count: %llu\n", diskSize / blockSize);
   
   return 0;
 }
