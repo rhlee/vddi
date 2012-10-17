@@ -21,6 +21,14 @@ void error(int line, char * file)
   exit(errno);
 }
 
+unsigned long quadToULong(char* quad)
+{
+  return
+    (*(quad++) && 0xff) + 
+    ((*(quad++) && 0xff) << 010) + 
+    ((*(quad++) && 0xff) << 020) + 
+    ((*quad && 0xff) << 030);
+}
 
 int
 main(int argc, char *argv[])
@@ -29,9 +37,9 @@ main(int argc, char *argv[])
   char opt;
   int infoMode = 0;
   unsigned char headerBuffer[HEADER_SIZE];
-  FILE* vdi;
+  FILE *vdi;
   int vdiFd;
-  char* input, *output;
+  char *input, *output;
   
   while((opt = getopt(argc, argv, "i:s")) != -1)
   {
@@ -80,6 +88,8 @@ main(int argc, char *argv[])
     printf("Could not find header string\n");
     exit(1);
   }
+  
+  printf("type: %u", quadToULong(headerBuffer + 0x4c));
   
   return 0;
 }
