@@ -1,2 +1,2 @@
 all:
-	gcc -g vddi.c -o vddi
+	gcc -Wall -ggdb vddi.c -o vddi

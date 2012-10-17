@@ -37,11 +37,21 @@ main(int argc, char *argv[])
   char opt;
   int infoMode = 0;
   unsigned char headerBuffer[HEADER_SIZE];
-  FILE *vdi;
-  int vdiFd;
+  FILE *vdi, *raw;
+  int vdiFd, rawFd;
   char *input, *output;
   long blockOffset, dataOffset, blockSize;
   long long diskSize, blockCount;
+  long *map;
+  long i;
+  unsigned char *block;
+  int seek = 0;
+  
+  if(sizeof(long) != 4)
+  {
+    printf("Error: long is not 4 bytes long\n");
+    exit(1);
+  }
   
   while((opt = getopt(argc, argv, "i:s")) != -1)
   {
@@ -57,6 +67,7 @@ main(int argc, char *argv[])
         input = optarg;
         break;
       case 's':
+        seek = 1;
         break;
       case '?':
         perror(usage);
@@ -96,7 +107,38 @@ main(int argc, char *argv[])
   printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
   printf("Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
-  printf("Block Count: %llu\n", diskSize / blockSize);
+  printf("Block Count: %llu\n", blockCount = (diskSize / blockSize));
+  
+  if(infoMode) exit(0);
+  
+  if(lseek(vdiFd, blockOffset, SEEK_SET) != blockOffset)
+    error(__LINE__, __FILE__);
+  //printf("pos: 0x%x\n", ftell(vdi));
+  map = malloc(blockCount * 4);
+  if(fread(map, 4, blockCount, vdi) != blockCount)
+    error(__LINE__, __FILE__);
+  
+  if(lseek(vdiFd, dataOffset, SEEK_SET) != dataOffset)
+    error(__LINE__, __FILE__);
+  printf("pos: 0x%x\n", ftell(vdi));
+  if((raw = fopen(output, "w")) == NULL)
+    error(__LINE__, __FILE__);
+  rawFd = fileno(raw);
+
+  if(setvbuf(vdi, NULL, _IOFBF, blockSize) ||
+    setvbuf(raw, NULL, _IOFBF, blockSize))
+    error(__LINE__, __FILE__);
+  block = malloc(blockSize);
+  
+  for(i = 0; i < blockCount; i++)
+  {
+    fread(block, blockSize, 1, vdi);
+    fwrite(block, blockSize, 1, raw);
+    if(i == 0) break;
+  }
+  
+  close(vdiFd);
+  close(rawFd);
   
   return 0;
 }
