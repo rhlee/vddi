@@ -24,10 +24,10 @@ void error(int line, char * file)
 unsigned long quadToULong(char* quad)
 {
   return
-    (*(quad++) && 0xff) + 
-    ((*(quad++) && 0xff) << 010) + 
-    ((*(quad++) && 0xff) << 020) + 
-    ((*quad && 0xff) << 030);
+    (*quad & 0xff) + 
+    ((*(quad + 1) & 0xff) << 010) + 
+    ((*(quad + 2) & 0xff) << 020) + 
+    ((*(quad + 3) & 0xff) << 030);
 }
 
 int
