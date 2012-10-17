@@ -40,6 +40,7 @@ main(int argc, char *argv[])
   FILE *vdi;
   int vdiFd;
   char *input, *output;
+  long blockOffset, dataOffset;
   
   while((opt = getopt(argc, argv, "i:s")) != -1)
   {
@@ -88,8 +89,11 @@ main(int argc, char *argv[])
     printf("Could not find header string\n");
     exit(1);
   }
-  
-  printf("type: %u", quadToULong(headerBuffer + 0x4c));
+  printf("VDI type: %lu\n", quadToULong(headerBuffer + 0x4c));
+  printf("Block offset: 0x%x\n", blockOffset = quadToULong(headerBuffer + 0x154));
+  printf("Data offset: 0x%x\n", dataOffset = quadToULong(headerBuffer + 0x158));
+  printf("Disk size: %llu\n", quadToULong(headerBuffer + 0x170) +
+    ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
   
   return 0;
 }
