@@ -30,13 +30,13 @@ unsigned long quadToULong(char* quad)
     ((*(quad + 3) & 0xff) << 030);
 }
 
+
 int
 main(int argc, char *argv[])
 {
-  int optCount = 0;
   char opt;
   int infoMode = 0;
-  unsigned char headerBuffer[HEADER_SIZE];
+  char headerBuffer[HEADER_SIZE];
   FILE *vdi, *raw;
   int vdiFd, rawFd;
   char *input, *output;
@@ -102,8 +102,8 @@ main(int argc, char *argv[])
     exit(1);
   }
   printf("VDI type: %lu\n", quadToULong(headerBuffer + 0x4c));
-  printf("Block offset: 0x%x\n", blockOffset = quadToULong(headerBuffer + 0x154));
-  printf("Data offset: 0x%x\n", dataOffset = quadToULong(headerBuffer + 0x158));
+  printf("Block offset: 0x%lx\n", blockOffset = quadToULong(headerBuffer + 0x154));
+  printf("Data offset: 0x%lx\n", dataOffset = quadToULong(headerBuffer + 0x158));
   printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
   printf("Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
@@ -120,7 +120,7 @@ main(int argc, char *argv[])
   
   if(lseek(vdiFd, dataOffset, SEEK_SET) != dataOffset)
     error(__LINE__, __FILE__);
-  printf("pos: 0x%x\n", ftell(vdi));
+  printf("pos: 0x%lx\n", ftell(vdi));
   if((raw = fopen(output, "w")) == NULL)
     error(__LINE__, __FILE__);
   rawFd = fileno(raw);
