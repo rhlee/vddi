@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 
 #define HEADER_SIZE 0x200
@@ -37,8 +40,7 @@ main(int argc, char *argv[])
   char opt;
   int infoMode = 0;
   char headerBuffer[HEADER_SIZE];
-  FILE *vdi, *raw;
-  int vdiFd, rawFd;
+  int vdi, raw;
   char *input, *output;
   long blockOffset, dataOffset, blockSize;
   long long diskSize, blockCount;
@@ -46,6 +48,7 @@ main(int argc, char *argv[])
   long i;
   unsigned char *block;
   int seek = 0;
+  long mapSize;
   
   if(sizeof(long) != 4)
   {
@@ -89,11 +92,10 @@ main(int argc, char *argv[])
     output = argv[optind + 1];
   }
   
-  if((vdi = fopen(input, "r")) == NULL)
+  if((vdi = open(input, O_RDONLY)) == -1)
     error(__LINE__, __FILE__);
-  vdiFd = fileno(vdi);
   
-  if(read(vdiFd, headerBuffer, HEADER_SIZE) != HEADER_SIZE)
+  if(read(vdi, headerBuffer, HEADER_SIZE) != HEADER_SIZE)
     error(__LINE__, __FILE__);
   
   if(strncmp(headerBuffer, HEADER_STRING, strlen(HEADER_STRING)))
@@ -111,34 +113,30 @@ main(int argc, char *argv[])
   
   if(infoMode) exit(0);
   
-  if(lseek(vdiFd, blockOffset, SEEK_SET) != blockOffset)
+  if(lseek(vdi, blockOffset, SEEK_SET) != blockOffset)
     error(__LINE__, __FILE__);
-  //printf("pos: 0x%x\n", ftell(vdi));
-  map = malloc(blockCount * 4);
-  if(fread(map, 4, blockCount, vdi) != blockCount)
+  mapSize = blockCount * 4;
+  map = malloc(mapSize);
+  if(read(vdi, map, mapSize) != mapSize)
     error(__LINE__, __FILE__);
   
-  if(lseek(vdiFd, dataOffset, SEEK_SET) != dataOffset)
+  if(lseek(vdi, dataOffset, SEEK_SET) != dataOffset)
     error(__LINE__, __FILE__);
-  printf("pos: 0x%lx\n", ftell(vdi));
-  if((raw = fopen(output, "w")) == NULL)
+  if((raw = open(output, O_WRONLY)) == -1)
     error(__LINE__, __FILE__);
-  rawFd = fileno(raw);
 
-  if(setvbuf(vdi, NULL, _IOFBF, blockSize) ||
-    setvbuf(raw, NULL, _IOFBF, blockSize))
-    error(__LINE__, __FILE__);
   block = malloc(blockSize);
-  
   for(i = 0; i < blockCount; i++)
   {
-    fread(block, blockSize, 1, vdi);
-    fwrite(block, blockSize, 1, raw);
+    if(read(vdi, block, blockSize) != blockSize)
+      error(__LINE__, __FILE__);
+    if(write(raw, block, blockSize) != blockSize)
+      error(__LINE__, __FILE__);
     if(i == 0) break;
   }
   
-  close(vdiFd);
-  close(rawFd);
+  close(vdi);
+  close(raw);
   
   return 0;
 }
