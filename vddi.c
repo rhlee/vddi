@@ -48,6 +48,9 @@ main(int argc, char *argv[])
   unsigned char *block, *zero;
   int sparse = 0;
   long mapSize;
+  int percent = 0, bars;
+  long long percentThreshold = -1;
+  int j;
   
   if(sizeof(long) != 4)
   {
@@ -128,8 +131,6 @@ main(int argc, char *argv[])
   block = malloc(blockSize);
   zero = malloc(blockSize);
   memset(zero, 0, blockSize);
-  //progress bar
-  blockCount = 20;
   for(i = 0; i < blockCount; i++)
   {
     if(map[i] == -1)
@@ -154,6 +155,18 @@ main(int argc, char *argv[])
         error(__LINE__, __FILE__);
       if(write(raw, block, blockSize) != blockSize)
         error(__LINE__, __FILE__);
+    }
+    
+    if(i > percentThreshold)
+    {
+      bars = (percent / 2.0) + 0.5;
+      printf("[");
+      for(j = 0; j < bars; j++) printf("=");
+      for(j = bars; j < 50; j++) printf("-");
+      printf("] %i%%\n", percent);
+      fflush(stdout);
+      percentThreshold = blockCount * (percent + 0.5) / 100;
+      percent++;
     }
   }
   
