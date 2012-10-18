@@ -130,14 +130,16 @@ main(int argc, char *argv[])
   //progress bar
   for(i = 0; i < blockCount; i++)
   {
-    if(*map == -1)
+    if(map[i] == -1)
     { //test this
       if(sparse)
       {
-        //seekTarget = ((map -  * blockSize);
+        if(lseek(raw, blockSize, SEEK_CUR) != ((i + 1) * blockSize))
+          error(__LINE__, __FILE__);
       }
       else
       {
+        ;//!!!
       }
     }
     else
@@ -150,7 +152,7 @@ main(int argc, char *argv[])
       if(write(raw, block, blockSize) != blockSize)
         error(__LINE__, __FILE__);
     }
-    if(i == 2) break;
+    if(i == 20) break;
   }
   
   close(vdi);
