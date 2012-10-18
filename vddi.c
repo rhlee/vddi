@@ -43,9 +43,8 @@ main(int argc, char *argv[])
   int vdi, raw;
   char *input, *output;
   long blockOffset, dataOffset, blockSize;
-  long long diskSize, blockCount;
+  long long diskSize, blockCount, seekTarget;
   long *map;
-  long i;
   unsigned char *block;
   int seek = 0;
   long mapSize;
@@ -104,8 +103,8 @@ main(int argc, char *argv[])
     exit(1);
   }
   printf("VDI type: %lu\n", quadToULong(headerBuffer + 0x4c));
-  printf("Block offset: 0x%lx\n", blockOffset = quadToULong(headerBuffer + 0x154));
-  printf("Data offset: 0x%lx\n", dataOffset = quadToULong(headerBuffer + 0x158));
+  printf("Block offset: %#lx\n", blockOffset = quadToULong(headerBuffer + 0x154));
+  printf("Data offset: %#lx\n", dataOffset = quadToULong(headerBuffer + 0x158));
   printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
   printf("Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
@@ -122,18 +121,28 @@ main(int argc, char *argv[])
   
   if(lseek(vdi, dataOffset, SEEK_SET) != dataOffset)
     error(__LINE__, __FILE__);
-  if((raw = open(output, O_WRONLY)) == -1)
+  if((raw = open(output, O_WRONLY | O_CREAT, 0666)) == -1)
     error(__LINE__, __FILE__);
 
   block = malloc(blockSize);
   long *orig = map;
   for(; map < (blockCount + map); map++)
   {
-    //if(
-    if(read(vdi, block, blockSize) != blockSize)
-      error(__LINE__, __FILE__);
-    if(write(raw, block, blockSize) != blockSize)
-      error(__LINE__, __FILE__);
+    if(*map == -1)
+    {
+      printf("not yet implemented\n");
+      exit(2);
+    }
+    else
+    {
+      if(read(vdi, block, blockSize) != blockSize)
+        error(__LINE__, __FILE__);
+      seekTarget = dataOffset + (*map * blockSize);
+      if(lseek(vdi, seekTarget, SEEK_SET) != seekTarget)
+        error(__LINE__, __FILE__);
+      if(write(raw, block, blockSize) != blockSize)
+        error(__LINE__, __FILE__);
+    }
     if(map == orig) break;
   }
   
