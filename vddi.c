@@ -126,13 +126,15 @@ main(int argc, char *argv[])
     error(__LINE__, __FILE__);
 
   block = malloc(blockSize);
-  for(i = 0; i < blockCount; i++)
+  long *orig = map;
+  for(; map < (blockCount + map); map++)
   {
+    //if(
     if(read(vdi, block, blockSize) != blockSize)
       error(__LINE__, __FILE__);
     if(write(raw, block, blockSize) != blockSize)
       error(__LINE__, __FILE__);
-    if(i == 0) break;
+    if(map == orig) break;
   }
   
   close(vdi);
