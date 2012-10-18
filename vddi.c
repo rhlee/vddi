@@ -12,6 +12,7 @@
 #define HEADER_SIZE 0x200
 #define HEADER_STRING "<<< Oracle VM VirtualBox Disk Image >>>"
 #define TIME_BUFFER_SZ 10
+#define BAR_SZ 40
 
 const char usage[] =
   "Usage: to be written\n";
@@ -63,6 +64,7 @@ main(int argc, char *argv[])
   long long deltaT;
   float speed;
   int bars, j;
+  int timeRemaining;
   
   if(sizeof(long) != 4)
   {
@@ -170,10 +172,10 @@ main(int argc, char *argv[])
         error(__LINE__, __FILE__);
     }
     
-    bars = (i / (float)blockCount * 50) + 0.5;
+    bars = (i / (float)blockCount * BAR_SZ) + 0.5;
     printf("[");
     for(j = 0; j < bars; j++) printf("=");
-    for(j = bars; j < 50; j++) printf("-");
+    for(j = bars; j < BAR_SZ; j++) printf("-");
     printf("] %.1f%% ", i / (float)blockCount * 100);
     
     back = i - TIME_BUFFER_SZ + 1;
@@ -184,9 +186,12 @@ main(int argc, char *argv[])
     {
       speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
       printf("%.2f MB/s", blockSize * speed / (float)0x100000);
+      //merge
+      timeRemaining = ((blockCount - i) / speed) + 0.5;
+      printf("r %02d:%02d:%02d", timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
     }
     //printf("%llu %s\n", i/blockCount, speedStr);
-    printf("\n");
+    printf("\n");//up
     time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
   
