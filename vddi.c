@@ -46,7 +46,7 @@ main(int argc, char *argv[])
   long long diskSize, blockCount, seekTarget;
   long *map;
   unsigned char *block;
-  int seek = 0;
+  int sparse = 0;
   long mapSize;
   
   if(sizeof(long) != 4)
@@ -69,7 +69,7 @@ main(int argc, char *argv[])
         input = optarg;
         break;
       case 's':
-        seek = 1;
+        sparse = 1;
         break;
       case '?':
         perror(usage);
@@ -135,15 +135,16 @@ main(int argc, char *argv[])
     }
     else
     {
-      if(read(vdi, block, blockSize) != blockSize)
-        error(__LINE__, __FILE__);
       seekTarget = dataOffset + (*map * blockSize);
+      printf("target: %lu\n", *map);
       if(lseek(vdi, seekTarget, SEEK_SET) != seekTarget)
+        error(__LINE__, __FILE__);
+      if(read(vdi, block, blockSize) != blockSize)
         error(__LINE__, __FILE__);
       if(write(raw, block, blockSize) != blockSize)
         error(__LINE__, __FILE__);
     }
-    if(map == orig) break;
+    if(map == (orig + 1)) break;
   }
   
   close(vdi);
