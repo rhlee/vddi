@@ -126,7 +126,7 @@ main(int argc, char *argv[])
   printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
   printf("Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
-  printf("Block Count: %llu\n", blockCount = (diskSize / blockSize));
+  printf("Block Count: %llu\n\n", blockCount = (diskSize / blockSize));
   
   if(infoMode) exit(0);
   
@@ -173,10 +173,10 @@ main(int argc, char *argv[])
     }
     
     bars = (i / (float)blockCount * BAR_SZ) + 0.5;
-    printf("[");
+    printf("\x1b[1K\r[");
     for(j = 0; j < bars; j++) printf("=");
     for(j = bars; j < BAR_SZ; j++) printf("-");
-    printf("] %.1f%% ", i / (float)blockCount * 100);
+    printf("] %.1f%%, ", i / (float)blockCount * 100);
     
     back = i - TIME_BUFFER_SZ + 1;
     back = (0 > back) ? 0 : back;
@@ -185,13 +185,14 @@ main(int argc, char *argv[])
     else
     {
       speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
-      printf("%.2f MB/s", blockSize * speed / (float)0x100000);
-      //merge
       timeRemaining = ((blockCount - i) / speed) + 0.5;
-      printf("r %02d:%02d:%02d", timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
+      printf("%.2fMB/s, eta %02d:%02d:%02d",
+        blockSize * speed / (float)0x100000,
+        timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
     }
     //printf("%llu %s\n", i/blockCount, speedStr);
-    printf("\n");//up
+    //printf("\n");//up
+    fflush(stdout);
     time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
   
