@@ -11,9 +11,11 @@
 
 #define HEADER_SIZE 0x200
 #define HEADER_STRING "<<< Oracle VM VirtualBox Disk Image >>>"
+#define TIME_BUFFER_SZ 10
 
 const char usage[] =
   "Usage: to be written\n";
+char infinity[] = "infinity";
 
 
 void error(int line, char * file)
@@ -51,11 +53,14 @@ main(int argc, char *argv[])
   int vdi, raw;
   char *input, *output;
   long blockOffset, dataOffset, blockSize;
-  long long diskSize, blockCount, seekTarget, i;
+  long long diskSize, blockCount, seekTarget, i, back;
   long *map;
   unsigned char *block, *zero;
   int sparse = 0;
   long mapSize;
+  long long time_buffer[TIME_BUFFER_SZ];
+  char speedBuf[64], *speed;
+  long long deltaT;
   
   if(sizeof(long) != 4)
   {
@@ -136,6 +141,7 @@ main(int argc, char *argv[])
   block = malloc(blockSize);
   zero = malloc(blockSize);
   memset(zero, 0, blockSize);
+  time_buffer[0] = now();
   for(i = 0; i < blockCount; i++)
   {
     if(map[i] == -1)
@@ -162,6 +168,18 @@ main(int argc, char *argv[])
         error(__LINE__, __FILE__);
     }
     
+    back = i - TIME_BUFFER_SZ + 1;
+    back = (0 > back) ? 0 : back;
+    if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
+      speed = infinity;
+    else
+    {
+      snprintf(speedBuf, 64, "%.2f",
+        (TIME_BUFFER_SZ * blockSize / (float)0x100000) / (deltaT / 1000000.0));
+      speed = speedBuf;
+    }
+    printf("%llu %s\n", i/blockCount, speed);
+    time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
   
   free(zero);
