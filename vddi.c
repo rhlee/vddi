@@ -61,6 +61,8 @@ main(int argc, char *argv[])
   long long time_buffer[TIME_BUFFER_SZ];
   char speedStrBuf[64], *speedStr;
   long long deltaT;
+  float speed;
+  int bars, j;
   
   if(sizeof(long) != 4)
   {
@@ -168,17 +170,25 @@ main(int argc, char *argv[])
         error(__LINE__, __FILE__);
     }
     
+    bars = (i / (float)blockCount * 50) + 0.5;
+    printf("[");
+    for(j = 0; j < bars; j++) printf("=");
+    for(j = bars; j < 50; j++) printf("-");
+    printf("] %.1f%%", i / (float)blockCount * 100);
+    
     back = i - TIME_BUFFER_SZ + 1;
     back = (0 > back) ? 0 : back;
     if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
       speedStr = infinity;
     else
     {
+      speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
       snprintf(speedStrBuf, 64, "%.2f",
-        (TIME_BUFFER_SZ * blockSize / (float)0x100000) / (deltaT / 1000000.0));
+        blockSize * speed / (float)0x100000);
       speedStr = speedStrBuf;
     }
-    printf("%llu %s\n", i/blockCount, speedStr);
+    //printf("%llu %s\n", i/blockCount, speedStr);
+    printf("\n");
     time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
   
