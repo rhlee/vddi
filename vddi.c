@@ -59,7 +59,7 @@ main(int argc, char *argv[])
   int sparse = 0;
   long mapSize;
   long long time_buffer[TIME_BUFFER_SZ];
-  char speedBuf[64], *speed;
+  char speedStrBuf[64], *speedStr;
   long long deltaT;
   
   if(sizeof(long) != 4)
@@ -171,14 +171,14 @@ main(int argc, char *argv[])
     back = i - TIME_BUFFER_SZ + 1;
     back = (0 > back) ? 0 : back;
     if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
-      speed = infinity;
+      speedStr = infinity;
     else
     {
-      snprintf(speedBuf, 64, "%.2f",
+      snprintf(speedStrBuf, 64, "%.2f",
         (TIME_BUFFER_SZ * blockSize / (float)0x100000) / (deltaT / 1000000.0));
-      speed = speedBuf;
+      speedStr = speedStrBuf;
     }
-    printf("%llu %s\n", i/blockCount, speed);
+    printf("%llu %s\n", i/blockCount, speedStr);
     time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
   
