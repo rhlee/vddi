@@ -103,7 +103,8 @@ main(int argc, char *argv[])
     exit(1);
   }
   printf("VDI type: %lu\n", quadToULong(headerBuffer + 0x4c));
-  printf("Block offset: %#lx\n", blockOffset = quadToULong(headerBuffer + 0x154));
+  printf("Block offset: %#lx\n",
+    blockOffset = quadToULong(headerBuffer + 0x154));
   printf("Data offset: %#lx\n", dataOffset = quadToULong(headerBuffer + 0x158));
   printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
@@ -128,10 +129,11 @@ main(int argc, char *argv[])
   zero = malloc(blockSize);
   memset(zero, 0, blockSize);
   //progress bar
+  blockCount = 20;
   for(i = 0; i < blockCount; i++)
   {
     if(map[i] == -1)
-    { //test this
+    {
       if(sparse)
       {
         if(lseek(raw, blockSize, SEEK_CUR) != ((i + 1) * blockSize))
@@ -139,7 +141,8 @@ main(int argc, char *argv[])
       }
       else
       {
-        ;//!!!
+        if(write(raw, zero, blockSize) != blockSize)
+          error(__LINE__, __FILE__);
       }
     }
     else
@@ -152,8 +155,9 @@ main(int argc, char *argv[])
       if(write(raw, block, blockSize) != blockSize)
         error(__LINE__, __FILE__);
     }
-    if(i == 20) break;
   }
+  
+  if(sparse) ftruncate(raw, blockSize * blockCount);
   
   close(vdi);
   close(raw);
