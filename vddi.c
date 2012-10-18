@@ -43,9 +43,9 @@ main(int argc, char *argv[])
   int vdi, raw;
   char *input, *output;
   long blockOffset, dataOffset, blockSize;
-  long long diskSize, blockCount, seekTarget;
+  long long diskSize, blockCount, seekTarget, i;
   long *map;
-  unsigned char *block;
+  unsigned char *block, *zero;
   int sparse = 0;
   long mapSize;
   
@@ -125,18 +125,24 @@ main(int argc, char *argv[])
     error(__LINE__, __FILE__);
 
   block = malloc(blockSize);
-  long *orig = map;
-  for(; map < (blockCount + map); map++)
+  zero = malloc(blockSize);
+  memset(zero, 0, blockSize);
+  //progress bar
+  for(i = 0; i < blockCount; i++)
   {
     if(*map == -1)
-    {
-      printf("not yet implemented\n");
-      exit(2);
+    { //test this
+      if(sparse)
+      {
+        //seekTarget = ((map -  * blockSize);
+      }
+      else
+      {
+      }
     }
     else
     {
-      seekTarget = dataOffset + (*map * blockSize);
-      printf("target: %lu\n", *map);
+      seekTarget = dataOffset + (map[i] * blockSize);
       if(lseek(vdi, seekTarget, SEEK_SET) != seekTarget)
         error(__LINE__, __FILE__);
       if(read(vdi, block, blockSize) != blockSize)
@@ -144,7 +150,7 @@ main(int argc, char *argv[])
       if(write(raw, block, blockSize) != blockSize)
         error(__LINE__, __FILE__);
     }
-    if(map == (orig + 1)) break;
+    if(i == 2) break;
   }
   
   close(vdi);
