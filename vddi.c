@@ -170,7 +170,8 @@ main(int argc, char *argv[])
     }
   }
   
-  //free
+  free(zero);
+  free(block);
   
   if(sparse && ftruncate(raw, blockSize * blockCount))
     error(__LINE__, __FILE__);
