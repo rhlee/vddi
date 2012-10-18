@@ -174,18 +174,16 @@ main(int argc, char *argv[])
     printf("[");
     for(j = 0; j < bars; j++) printf("=");
     for(j = bars; j < 50; j++) printf("-");
-    printf("] %.1f%%", i / (float)blockCount * 100);
+    printf("] %.1f%% ", i / (float)blockCount * 100);
     
     back = i - TIME_BUFFER_SZ + 1;
     back = (0 > back) ? 0 : back;
     if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
-      speedStr = infinity;
+      speedStr = infinity;//clean
     else
     {
       speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
-      snprintf(speedStrBuf, 64, "%.2f",
-        blockSize * speed / (float)0x100000);
-      speedStr = speedStrBuf;
+      printf("%.2f MB/s", blockSize * speed / (float)0x100000);
     }
     //printf("%llu %s\n", i/blockCount, speedStr);
     printf("\n");
