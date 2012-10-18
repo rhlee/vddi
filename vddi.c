@@ -15,8 +15,10 @@
 #define BAR_SZ 40
 
 const char usage[] =
-  "Usage: to be written\n";
-char infinity[] = "infinity";
+  "Usage:\n"
+  "  vddi [-i/-s] innputFile [outputFile]\n"
+  "    -i only print info don't copy\n"
+  "    -s write sparse data (don't use this for physical devices)";
 
 
 void error(int line, char * file)
@@ -60,7 +62,6 @@ main(int argc, char *argv[])
   int sparse = 0;
   long mapSize;
   long long time_buffer[TIME_BUFFER_SZ];
-  char speedStrBuf[64], *speedStr;
   long long deltaT;
   float speed;
   int bars, j;
@@ -180,9 +181,7 @@ main(int argc, char *argv[])
     
     back = i - TIME_BUFFER_SZ + 1;
     back = (0 > back) ? 0 : back;
-    if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
-      speedStr = infinity;//clean
-    else
+    if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) != 0)
     {
       speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
       timeRemaining = ((blockCount - i) / speed) + 0.5;
@@ -190,8 +189,6 @@ main(int argc, char *argv[])
         blockSize * speed / (float)0x100000,
         timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
     }
-    //printf("%llu %s\n", i/blockCount, speedStr);
-    //printf("\n");//up
     fflush(stdout);
     time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
