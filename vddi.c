@@ -62,7 +62,7 @@ void finally()
 
 void sigInt(int signal)
 {
-  printf("\x1b[?25h\n\nAborted\n");
+  printf("\x1b[?25h\nAborted");
   finally();
   exit(2);
 }
@@ -146,7 +146,7 @@ main(int argc, char *argv[])
   printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
   printf("Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
-  printf("Block Count: %llu\n\n\x1b[?25l", blockCount = (diskSize / blockSize));
+  printf("Block Count: %llu\n\n\x1b""7", blockCount = (diskSize / blockSize));
   
   if(infoMode) exit(0);
   
@@ -194,21 +194,17 @@ main(int argc, char *argv[])
     
     back = i - TIME_BUFFER_SZ + 1;
     back = (0 > back) ? 0 : back;
-    //long long k;
-    //printf("%lld, %lld\n", now(), lastPrint);
-    //printf("%lld %x\n", k, k > 250000);
-    //if((now() - lastPrint) > 250000)
-    if(1)
+    if((now() - lastPrint) > 250000)
     {
       bars = (i / (float)blockCount * BAR_SZ) + 0.5;
-      printf("\x1b[1K\r[");
+      printf("\x1b""8[");
       for(j = 0; j < bars; j++) printf("=");
       for(j = bars; j < BAR_SZ; j++) printf("-");
       printf("] %.1f%%, ", i / (float)blockCount * 100);
 
       if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
       {
-        printf("xfer rate too fast for calculations");
+        printf("v.fast xfer rate");
       }
       else
       {
