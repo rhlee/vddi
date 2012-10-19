@@ -21,6 +21,11 @@ const char usage[] =
   "    -s write sparse data (don't use this for physical devices)";
 
 
+int vdi, raw;
+long *map;
+unsigned char *block, *zero;
+
+
 void error(int line, char * file)
 {
   printf("[%s:%i] Last set error code is %i: %s\n"
@@ -46,11 +51,22 @@ long long now()
   return (tv.tv_sec * 1000000) + tv.tv_usec;
 }
 
+void finally()
+{
+  free(zero);
+  free(block);
+  free(map);
+  close(vdi);
+  close(raw);
+}
+
 void sigInt(int signal)
 {
   printf("\x1b[?25h\n\nAborted\n");
+  finally();
   exit(2);
 }
+
 
 int
 main(int argc, char *argv[])
@@ -58,12 +74,9 @@ main(int argc, char *argv[])
   char opt;
   int infoMode = 0;
   char headerBuffer[HEADER_SIZE];
-  int vdi, raw;
   char *input, *output;
   long blockOffset, dataOffset, blockSize;
   long long diskSize, blockCount, seekTarget, i, back;
-  long *map;
-  unsigned char *block, *zero;
   int sparse = 0;
   long mapSize;
   long long time_buffer[TIME_BUFFER_SZ];
@@ -200,14 +213,10 @@ main(int argc, char *argv[])
     time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
   
-  free(zero);
-  free(block);
-  
   if(sparse && ftruncate(raw, blockSize * blockCount))
     error(__LINE__, __FILE__);
   
-  close(vdi);
-  close(raw);
+  finally();
   
   return 0;
 }
