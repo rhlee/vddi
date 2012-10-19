@@ -79,8 +79,7 @@ main(int argc, char *argv[])
   long long diskSize, blockCount, seekTarget, i, back;
   int sparse = 0;
   long mapSize;
-  long long time_buffer[TIME_BUFFER_SZ];
-  long long deltaT;
+  long long time_buffer[TIME_BUFFER_SZ], deltaT, lastPrint = now();
   float speed;
   int bars, j;
   int timeRemaining;
@@ -193,23 +192,35 @@ main(int argc, char *argv[])
         error(__LINE__, __FILE__);
     }
     
-    bars = (i / (float)blockCount * BAR_SZ) + 0.5;
-    printf("\x1b[1K\r[");
-    for(j = 0; j < bars; j++) printf("=");
-    for(j = bars; j < BAR_SZ; j++) printf("-");
-    printf("] %.1f%%, ", i / (float)blockCount * 100);
-    
     back = i - TIME_BUFFER_SZ + 1;
     back = (0 > back) ? 0 : back;
-    if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) != 0)
+    //long long k;
+    //printf("%lld, %lld\n", now(), lastPrint);
+    //printf("%lld %x\n", k, k > 250000);
+    //if((now() - lastPrint) > 250000)
+    if(1)
     {
-      speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
-      timeRemaining = ((blockCount - i) / speed) + 0.5;
-      printf("%.2fMB/s, eta %02d:%02d:%02d ",
-        blockSize * speed / (float)0x100000,
-        timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
+      bars = (i / (float)blockCount * BAR_SZ) + 0.5;
+      printf("\x1b[1K\r[");
+      for(j = 0; j < bars; j++) printf("=");
+      for(j = bars; j < BAR_SZ; j++) printf("-");
+      printf("] %.1f%%, ", i / (float)blockCount * 100);
+
+      if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
+      {
+        printf("xfer rate too fast for calculations");
+      }
+      else
+      {
+        speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
+        timeRemaining = ((blockCount - i) / speed) + 0.5;
+        printf("%.2fMB/s, eta %02d:%02d:%02d ",
+          blockSize * speed / (float)0x100000,
+          timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
+      }
+      fflush(stdout);
+      lastPrint = now();
     }
-    fflush(stdout);
     time_buffer[(i) % TIME_BUFFER_SZ] = now();
   }
   
