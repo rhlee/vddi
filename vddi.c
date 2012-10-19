@@ -46,6 +46,11 @@ long long now()
   return (tv.tv_sec * 1000000) + tv.tv_usec;
 }
 
+void sigInt(int signal)
+{
+  printf("\x1b[?25h\n\nAborted\n");
+  exit(2);
+}
 
 int
 main(int argc, char *argv[])
@@ -66,6 +71,8 @@ main(int argc, char *argv[])
   float speed;
   int bars, j;
   int timeRemaining;
+  
+  signal(SIGINT, sigInt);
   
   if(sizeof(long) != 4)
   {
@@ -127,7 +134,7 @@ main(int argc, char *argv[])
   printf("Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
   printf("Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
-  printf("Block Count: %llu\n\n", blockCount = (diskSize / blockSize));
+  printf("Block Count: %llu\n\n\x1b[?25l", blockCount = (diskSize / blockSize));
   
   if(infoMode) exit(0);
   
@@ -185,7 +192,7 @@ main(int argc, char *argv[])
     {
       speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
       timeRemaining = ((blockCount - i) / speed) + 0.5;
-      printf("%.2fMB/s, eta %02d:%02d:%02d",
+      printf("%.2fMB/s, eta %02d:%02d:%02d ",
         blockSize * speed / (float)0x100000,
         timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
     }
