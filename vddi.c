@@ -28,7 +28,7 @@ unsigned char *block, *zero;
 
 void error(int line, char * file)
 {
-  sprintf(2, "[%s:%i] Last set error code is %i: %s\n"
+  fprintf(stderr, "[%s:%i] Last set error code is %i: %s\n"
     "Use gdb to catch this SIGTRAP\n",
     file, line, errno, strerror(errno));
   __asm__("int3");
@@ -62,7 +62,7 @@ void finally()
 
 void sigInt(int signal)
 {
-  sprintf(2, "\x1b[?25h\nAborted");
+  fprintf(stderr, "\x1b[?25h\nAborted");
   finally();
   exit(2);
 }
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
   
   if(sizeof(long) != 4)
   {
-    sprintf(2, "Error: long is not 4 bytes long\n");
+    fprintf(stderr, "Error: long is not 4 bytes long\n");
     exit(1);
   }
   
@@ -100,7 +100,7 @@ main(int argc, char *argv[])
       case 'i':
         if(*optarg == '-')
         {
-          sprintf(2, usage);
+          fprintf(stderr, usage);
           exit(1);
         }
         infoMode = 1;
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
         break;
       case 'p':
         skip = atoi(optarg);
-        sprintf(2, "p detected %ld", skip);
+        fprintf(stderr, "p detected %ld", skip);
         exit(2);
         break;
       case '?':
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
   if((infoMode && (argc != optind)) ||
     (!infoMode && ((argc - optind) != 2)))
   {
-    sprintf(2, usage);
+    fprintf(stderr, usage);
     exit(1);
   }
   
@@ -142,17 +142,17 @@ main(int argc, char *argv[])
   
   if(strncmp(headerBuffer, HEADER_STRING, strlen(HEADER_STRING)))
   {
-    sprintf(2, "Could not find header string\n");
+    fprintf(stderr, "Could not find header string\n");
     exit(1);
   }
-  sprintf(2, "VDI type: %lu\n", quadToULong(headerBuffer + 0x4c));
-  sprintf(2, "Block offset: %#lx\n",
+  fprintf(stderr, "VDI type: %lu\n", quadToULong(headerBuffer + 0x4c));
+  fprintf(stderr, "Block offset: %#lx\n",
     blockOffset = quadToULong(headerBuffer + 0x154));
-  sprintf(2, "Data offset: %#lx\n", dataOffset = quadToULong(headerBuffer + 0x158));
-  sprintf(2, "Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
+  fprintf(stderr, "Data offset: %#lx\n", dataOffset = quadToULong(headerBuffer + 0x158));
+  fprintf(stderr, "Disk size: %llu\n", diskSize = quadToULong(headerBuffer + 0x170) +
     ((unsigned long long)quadToULong(headerBuffer + 0x174) << 040));
-  sprintf(2, "Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
-  sprintf(2, "Block Count: %llu\n\n\x1b""7", blockCount = (diskSize / blockSize));
+  fprintf(stderr, "Block size: %lu\n", blockSize = quadToULong(headerBuffer + 0x178));
+  fprintf(stderr, "Block Count: %llu\n\n\x1b""7", blockCount = (diskSize / blockSize));
   
   if(infoMode) exit(0);
   
@@ -203,20 +203,20 @@ main(int argc, char *argv[])
     if((now() - lastPrint) > 250000)
     {
       bars = (i / (float)blockCount * BAR_SZ) + 0.5;
-      sprintf(2, "\x1b""8[");
-      for(j = 0; j < bars; j++) sprintf(2, "=");
-      for(j = bars; j < BAR_SZ; j++) sprintf(2, "-");
-      sprintf(2, "] %.1f%%, ", i / (float)blockCount * 100);
+      fprintf(stderr, "\x1b""8[");
+      for(j = 0; j < bars; j++) fprintf(stderr, "=");
+      for(j = bars; j < BAR_SZ; j++) fprintf(stderr, "-");
+      fprintf(stderr, "] %.1f%%, ", i / (float)blockCount * 100);
 
       if((deltaT = (now() - time_buffer[back % TIME_BUFFER_SZ])) == 0)
       {
-        sprintf(2, "v.fast xfer rate");
+        fprintf(stderr, "v.fast xfer rate");
       }
       else
       {
         speed = TIME_BUFFER_SZ / (deltaT / 1000000.0);
         timeRemaining = ((blockCount - i) / speed) + 0.5;
-        sprintf(2, "%.2fMB/s, eta %02d:%02d:%02d ",
+        fprintf(stderr, "%.2fMB/s, eta %02d:%02d:%02d ",
           blockSize * speed / (float)0x100000,
           timeRemaining / 3600, timeRemaining / 60, timeRemaining % 60);
       }
