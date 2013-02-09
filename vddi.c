@@ -83,7 +83,9 @@ main(int argc, char *argv[])
   float speed;
   int bars, j;
   int timeRemaining;
-  long skip;
+  long skip = 0;
+  long long firstBlock = 0;
+  long firstBlockSize;
   
   signal(SIGINT, sigInt);
   
@@ -111,8 +113,6 @@ main(int argc, char *argv[])
         break;
       case 'p':
         skip = atoi(optarg);
-        fprintf(stderr, "p detected %ld", skip);
-        exit(2);
         break;
       case '?':
         perror(usage);
@@ -172,7 +172,22 @@ main(int argc, char *argv[])
   zero = malloc(blockSize);
   memset(zero, 0, blockSize);
   time_buffer[0] = now();
-  for(i = 0; i < blockCount; i++)
+  
+  //  map+=skip;
+  firstBlock = skip / blockSize;
+  printf("firstblock: %lld", firstBlock);
+  firstBlockSize = skip % blockSize;
+  if(lseek(vdi, skip, SEEK_SET) != skip)
+    error(__LINE__, __FILE__);
+  if(read(vdi, block, firstBlockSize) != firstBlockSize)
+    error(__LINE__, __FILE__);
+  if(write(raw, block, firstBlockSize) != firstBlockSize)
+    error(__LINE__, __FILE__);
+  
+  
+  //exit(2);
+  
+  for(i = 0; i < (blockCount - (firstBlock + 1)); i++)
   {
     if(map[i] == -1)
     {
