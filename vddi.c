@@ -174,10 +174,8 @@ main(int argc, char *argv[])
   time_buffer[0] = now();
   
   firstBlock = skip / blockSize;
-  //wrong
   offsetInFirstBlock = skip % blockSize;
   firstBlockSize = blockSize - offsetInFirstBlock;
-  //also wrong
   seekTarget = dataOffset + (map[firstBlock] * blockSize) + offsetInFirstBlock;
   if(lseek(vdi, seekTarget, SEEK_SET) != seekTarget)
     error(__LINE__, __FILE__);
@@ -192,8 +190,7 @@ main(int argc, char *argv[])
     {
       if(sparse)
       {
-        //problem here, fix later
-        if(lseek(raw, blockSize, SEEK_CUR) != ((i + 1) * blockSize))
+        if(lseek(raw, blockSize, SEEK_CUR) != (((i + 1) * blockSize) + firstBlockSize))
           error(__LINE__, __FILE__);
       }
       else
