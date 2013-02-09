@@ -173,9 +173,7 @@ main(int argc, char *argv[])
   memset(zero, 0, blockSize);
   time_buffer[0] = now();
   
-  //  map+=skip;
   firstBlock = skip / blockSize;
-  printf("firstblock: %lld", firstBlock);
   firstBlockSize = skip % blockSize;
   if(lseek(vdi, skip, SEEK_SET) != skip)
     error(__LINE__, __FILE__);
@@ -183,9 +181,6 @@ main(int argc, char *argv[])
     error(__LINE__, __FILE__);
   if(write(raw, block, firstBlockSize) != firstBlockSize)
     error(__LINE__, __FILE__);
-  
-  
-  //exit(2);
   
   for(i = 0; i < (blockCount - (firstBlock + 1)); i++)
   {
